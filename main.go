@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -52,6 +53,9 @@ func handler(req events.CloudWatchEvent) error {
 	}
 
 	if err = registerServices(); err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
 		return err
 	}
 
@@ -72,7 +76,56 @@ func registerServices() error {
 		return err
 	}
 
+	resourceRecords := make([]*r53.ResourceRecordSet, 0)
+	resourceRecords, err = listResourceRecords(resourceRecords, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	deleteResources := make([]*r53.ResourceRecordSet, 0)
+
+	for _, resourceRecord := range resourceRecords {
+		if aws.StringValue(resourceRecord.Type) == r53.RRTypeSrv {
+			shouldDelete := true
+			for _, service := range services {
+				dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), aws.StringValue(&ecsCluster), r53Zone}, ".")
+				if aws.StringValue(resourceRecord.Name) == dnsName {
+					shouldDelete = false
+				}
+			}
+			if shouldDelete {
+				deleteResources = append(deleteResources, resourceRecord)
+			}
+		}
+	}
+
+	if len(deleteResources) > 0 {
+		changes := make([]*r53.Change, 0)
+		for _, deleteResource := range deleteResources {
+			change := &r53.Change{
+				Action:            aws.String(r53.ChangeActionDelete),
+				ResourceRecordSet: deleteResource,
+			}
+			changes = append(changes, change)
+		}
+
+		params := &r53.ChangeResourceRecordSetsInput{
+			ChangeBatch: &r53.ChangeBatch{
+				Changes: changes,
+			},
+			HostedZoneId: aws.String(r53ZoneID),
+		}
+
+		_, err = r53Svc.ChangeResourceRecordSets(params)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	for _, service := range services {
+		dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), aws.StringValue(&ecsCluster), r53Zone}, ".")
+
 		taskArns := make([]*string, 0)
 		taskArns, err = listTasksArns(service.ServiceName, taskArns, nil)
 		if err != nil {
@@ -85,7 +138,7 @@ func registerServices() error {
 			return err
 		}
 
-		change, err := createSRVChangeRecord(service.ServiceName, &ecsCluster, tasks)
+		change, err := createSRVChangeRecord(dnsName, service.ServiceName, tasks)
 		if err != nil {
 			return err
 		}
@@ -136,7 +189,7 @@ func taskChange(task *ecs.Task) ([]*r53.ResourceRecord, error) {
 	return changeRecords, nil
 }
 
-func createSRVChangeRecord(serviceName *string, clusterName *string, tasks []*ecs.Task) (*r53.Change, error) {
+func createSRVChangeRecord(dnsName string, serviceName *string, tasks []*ecs.Task) (*r53.Change, error) {
 	resRecords := make([]*r53.ResourceRecord, 0)
 
 	for _, task := range tasks {
@@ -150,7 +203,7 @@ func createSRVChangeRecord(serviceName *string, clusterName *string, tasks []*ec
 	return &r53.Change{
 		Action: aws.String(r53.ChangeActionUpsert),
 		ResourceRecordSet: &r53.ResourceRecordSet{
-			Name: aws.String(strings.Join([]string{aws.StringValue(serviceName), aws.StringValue(clusterName), r53Zone}, ".")),
+			Name: aws.String(dnsName),
 			// It creates an A record with the IP of the host running the agent
 			Type:            aws.String(r53.RRTypeSrv),
 			ResourceRecords: resRecords,
@@ -225,6 +278,35 @@ func describeServices(serviceArns []*string, services []*ecs.Service, n int) ([]
 	}
 
 	return services, nil
+}
+
+func listResourceRecords(rRecords []*r53.ResourceRecordSet, startRecordName *string, startRecordType *string) ([]*r53.ResourceRecordSet, error) {
+	var err error
+	params := &r53.ListResourceRecordSetsInput{
+		HostedZoneId:    aws.String(r53ZoneID),
+		StartRecordType: startRecordType,
+	}
+
+	if startRecordName != nil && aws.StringValue(startRecordName) != "" {
+		params.StartRecordName = startRecordName
+	}
+
+	if startRecordType != nil && aws.StringValue(startRecordType) != "" {
+		params.StartRecordType = startRecordType
+	}
+
+	records, err := r53Svc.ListResourceRecordSets(params)
+	if err != nil {
+		return rRecords, err
+	}
+
+	rRecords = append(rRecords, records.ResourceRecordSets...)
+
+	if *records.IsTruncated {
+		listResourceRecords(rRecords, records.NextRecordName, records.NextRecordType)
+	}
+
+	return rRecords, nil
 }
 
 func listServiceArns(serviceArns []*string, nextToken *string) ([]*string, error) {
