@@ -11,17 +11,68 @@
 
 This Lambda function is doing the service discovery for an ECS Cluster.
 
-## `ROUTE53_ZONE`
+## Parameters
+
+### `ROUTE53_ZONE`
 
 The Route53 zone to be used for the discovery (e.g. `discovery.local`).
 
-## `ROUTE53_ZONE_ID`
+### `ROUTE53_ZONE_ID`
 
 The Route53 zone id to be used for the discovery. This is the id of the private zone.
 
-## `ECS_CLUSTER`
+### `ECS_CLUSTER`
 
 The name of the ECS Cluster to be used for discovery. (e.g. `my-project-prod`)
+
+## Policy
+
+We use various policies for the execution.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:*:*:*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:*",
+                "servicediscovery:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
 
 ## License
 [MIT](/LICENSE)
