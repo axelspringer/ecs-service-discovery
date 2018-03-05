@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -46,20 +45,11 @@ var (
 )
 
 func handler(req events.CloudWatchEvent) error {
-	var err error
-
 	if req.Source != eventSource {
 		return errNoEvent
 	}
 
-	if err = registerServices(); err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
-		return err
-	}
-
-	return err
+	return registerServices()
 }
 
 func registerServices() error {

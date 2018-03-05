@@ -1,42 +1,27 @@
-Welcome to the AWS CodeStar sample web application
-==================================================
+# ECS Service Discovery
 
-This sample code helps get you started with a simple Go web application deployed by AWS CloudFormation to AWS Lambda and Amazon API Gateway.
+[![Taylor Swift](https://img.shields.io/badge/secured%20by-taylor%20swift-brightgreen.svg)](https://twitter.com/SwiftOnSecurity)
+[![Volkswagen](https://auchenberg.github.io/volkswagen/volkswargen_ci.svg?v=1)](https://github.com/auchenberg/volkswagen)
+[![Build Status](https://travis-ci.org/katallaxie/vue-preboot.svg?branch=master)](https://travis-ci.org/katallaxie/vue-preboot)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
-What's Here
------------
+> A service discovery for [AWS ECS](https://aws.amazon.com/de/documentation/ecs/) based on [Route53](https://aws.amazon.com/de/route53/) and [AWS LAMBDA](https://aws.amazon.com/de/lambda)
 
-This sample includes:
+## Getting Started
 
-* README.md - this file
-* buildspec.yml - this file is used by AWS CodeBuild to package your
-  application for deployment to AWS Lambda
-* main.go - this file contains the sample Go code for the web application
-* template.yml - this file contains the AWS Serverless Application Model (AWS SAM) used
-  by AWS CloudFormation to deploy your application to AWS Lambda and Amazon API
-  Gateway.
+This Lambda function is doing the service discovery for an ECS Cluster.
 
+## `ROUTE53_ZONE`
 
-What Do I Do Next?
-------------------
+The Route53 zone to be used for the discovery (e.g. `discovery.local`).
 
-If you have checked out a local copy of your repository you can start making
-changes to the sample code.  We suggest making a small change to main.go first,
-so you can see how changes pushed to your project's repository are automatically
-picked up by your project pipeline and deployed to AWS Lambda and Amazon API Gateway.
-(You can watch the pipeline progress on your AWS CodeStar project dashboard.)
-Once you've seen how that works, start developing your own code, and have fun!
+## `ROUTE53_ZONE_ID`
 
-Learn more about AWS Serverless Application Model (AWS SAM) and how it works here:
-https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md
+The Route53 zone id to be used for the discovery. This is the id of the private zone.
 
-AWS Lambda Developer Guide:
-http://docs.aws.amazon.com/lambda/latest/dg/deploying-lambda-apps.html
+## `ECS_CLUSTER`
 
-Learn more about AWS CodeStar by reading the user guide, and post questions and
-comments about AWS CodeStar on our forum.
+The name of the ECS Cluster to be used for discovery. (e.g. `my-project-prod`)
 
-AWS CodeStar User Guide:
-http://docs.aws.amazon.com/codestar/latest/userguide/welcome.html
-
-AWS CodeStar Forum: https://forums.aws.amazon.com/forum.jspa?forumID=248
+## License
+[MIT](/LICENSE)
