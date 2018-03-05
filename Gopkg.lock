@@ -45,7 +45,6 @@
     "service/ec2",
     "service/ecs",
     "service/route53",
-    "service/servicediscovery",
     "service/sts"
   ]
   revision = "9a79087b1148376f4dd860c188c948479e2def3b"
@@ -65,6 +64,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7e86da6124692541a52d78d64b83fce0a97d5e1a256f16fc61a2d7698f2181db"
+  inputs-digest = "319e18827afac8c8948f1b37e61a1872951d64cfc94579a3734de40c363e3aab"
   solver-name = "gps-cdcl"
   solver-version = 1
