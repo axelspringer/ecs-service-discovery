@@ -20,6 +20,21 @@ type Func struct {
 	Route53ZoneID string
 }
 
+func (f *Func) init() error {
+	var err error
+
+	env, err := f.GetEnv()
+	if err != nil {
+		return err
+	}
+
+	f.EcsCluster = env["ecs-cluster"]
+	f.Route53Zone = env["route53-zone"]
+	f.Route53ZoneID = env["route53-zone-id"]
+
+	return err
+}
+
 func (f *Func) registerServices() error {
 	var err error
 

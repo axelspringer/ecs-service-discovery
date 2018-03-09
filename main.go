@@ -55,14 +55,9 @@ func handler(req events.CloudWatchEvent) error {
 	lambdaFunc.ProjectID = projectID
 	lambdaFunc.SSM = ssm.New(sess)
 
-	env, err := lambdaFunc.GetEnv()
-	if err != nil {
+	if err = lambdaFunc.init(); err != nil {
 		return err
 	}
-
-	lambdaFunc.EcsCluster = env["ecs-cluster"]
-	lambdaFunc.Route53Zone = env["route53-zone"]
-	lambdaFunc.Route53ZoneID = env["route53-zone-id"]
 
 	return lambdaFunc.registerServices()
 }
