@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	r53 "github.com/aws/aws-sdk-go/service/route53"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	l "github.com/axelspringer/go-aws/lambda"
 )
 
 const (
@@ -51,13 +51,16 @@ func handler(req events.CloudWatchEvent) error {
 		return errNoProjectID
 	}
 
-	lambdaFunc := new(Func)
-	lambdaFunc.ProjectID = projectID
-	lambdaFunc.SSM = ssm.New(sess)
-
-	if err = lambdaFunc.init(); err != nil {
+	lambdaFunc := l.New(projectID)
+	env, err := lambdaFunc.Store.GetEnv()
+	if err != nil {
 		return err
 	}
+
+	discovery := new(Discovery)
+	discovery.EcsCluster = env["ecs-cluster"]
+	discovery.Route53Zone = env["route53-zone"]
+	discovery.Route53ZoneID = env["route53-zone-id"]
 
 	return lambdaFunc.registerServices()
 }

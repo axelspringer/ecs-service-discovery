@@ -9,33 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	r53 "github.com/aws/aws-sdk-go/service/route53"
-	l "github.com/axelspringer/go-aws/lambda"
 )
 
-// Func contains the lambda function functionality
-type Func struct {
-	l.Func
+// Discovery contains the discovery functionality
+type Discovery struct {
 	EcsCluster    string
 	Route53Zone   string
 	Route53ZoneID string
 }
 
-func (f *Func) init() error {
-	var err error
-
-	env, err := f.GetEnv()
-	if err != nil {
-		return err
-	}
-
-	f.EcsCluster = env["ecs-cluster"]
-	f.Route53Zone = env["route53-zone"]
-	f.Route53ZoneID = env["route53-zone-id"]
-
-	return err
-}
-
-func (f *Func) registerServices() error {
+func (f *Discovery) registerServices() error {
 	var err error
 
 	batchChanges := make([]*r53.Change, 0)
