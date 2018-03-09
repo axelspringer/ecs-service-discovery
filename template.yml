@@ -1,12 +1,23 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform:
 - AWS::Serverless-2016-10-31
-- AWS::CodeStar
 
 Parameters:
   ProjectId:
     Type: String
-    Description: AWS CodeStar projectID used to associate new resources to team members
+    Description: AWS projectID to be used to associate ressources.
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC id.
+  
+  VpcSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: VPC security groups ids.
+  
+  VpcSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: VPC subnet ids.
 
 Resources:
   EcsEciServiceDiscovery:
@@ -14,6 +25,12 @@ Resources:
     Properties:
       Handler: main
       Runtime: go1.x
+      Environment: 
+        Variables:
+          PROJECT_ID: !Ref 'ProjectId'
+      VpcConfig:
+        SecurityGroupIds: !Ref 'VpcSecurityGroupIds'
+        SubnetIds: !Ref 'VpcSubnetIds'
       Role:
         Fn::ImportValue:
           !Join ['-', [!Ref 'ProjectId', !Ref 'AWS::Region', 'LambdaTrustRole']]

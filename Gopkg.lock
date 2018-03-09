@@ -45,16 +45,23 @@
     "service/ec2",
     "service/ecs",
     "service/route53",
+    "service/ssm",
     "service/sts"
   ]
-  revision = "9a79087b1148376f4dd860c188c948479e2def3b"
-  version = "v1.13.7"
+  revision = "bafcd9ccc717e9bc5406acaea370577299223873"
+  version = "v1.13.11"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/axelspringer/go-aws"
+  packages = ["lambda"]
+  revision = "dd763dcc841186a42d4fda6b479e3390dd41132d"
 
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
-  version = "v1.32.0"
+  revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
+  version = "v1.33.0"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -64,6 +71,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "319e18827afac8c8948f1b37e61a1872951d64cfc94579a3734de40c363e3aab"
+  inputs-digest = "5772ff2b8992a772f39b57d33a37821e71628b0f717f8689c6b0239ffb925866"
   solver-name = "gps-cdcl"
   solver-version = 1

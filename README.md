@@ -11,19 +11,28 @@
 
 This Lambda function is doing the service discovery for an ECS Cluster.
 
+## Environment Variables
+
+### `PROJECT_ID`
+
+The project id which prefixes the parameter in the parameter store.
+
+
 ## Parameters
 
-### `ROUTE53_ZONE`
+We use our [go-aws](https://github.com/axelspringer/go-aws) and the [System Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html) to inject environment variables in Lambda functions. 
 
-The Route53 zone to be used for the discovery (e.g. `discovery.local`).
+### /projectId/route53-zone
 
-### `ROUTE53_ZONE_ID`
+This is Route 53 hosted zone to be used for constructing the discovery entries (e.g. `tortuga.local`).
 
-The Route53 zone id to be used for the discovery. This is the id of the private zone.
+### /projectId/route53-zone-id
 
-### `ECS_CLUSTER`
+The Route 53 id of the hosted zone.
 
-The name of the ECS Cluster to be used for discovery. (e.g. `my-project-prod`)
+### /projectId/ecs-cluster
+
+The name of the ECS cluster that should be discoverd.
 
 ## Policy
 
