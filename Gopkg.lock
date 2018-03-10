@@ -59,7 +59,7 @@
     "lambda",
     "store"
   ]
-  revision = "adc8e993465dbf02e0a7f4fa087e26ad449f5d67"
+  revision = "e0222983f0398b8b2b85440deec4a4eb83a5f4f0"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -75,6 +75,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8b4db074ca7e016b60b520f60eb3a3115f04f60cb5243719789f87406282268c"
+  inputs-digest = "5f7cc2d48288e27f709e7622a71ab919f6cbbe2d6851315c7551d000aedf42ad"
   solver-name = "gps-cdcl"
   solver-version = 1

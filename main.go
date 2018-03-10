@@ -30,6 +30,8 @@ var (
 	errNoProjectID = errors.New("no ProjectID present")
 	errNoEvent     = errors.New("no CloudWatch event")
 	errNoChange    = errors.New("no records to change")
+
+	parameters = []string{"ecs-cluster", "route53-zone", "route53-zone-id"}
 )
 
 var (
@@ -52,6 +54,10 @@ func handler(req events.CloudWatchEvent) error {
 	}
 
 	lambdaFunc := l.New(projectID)
+	if _, err := lambdaFunc.Store.TestEnv(parameters); err != nil {
+		return err
+	}
+
 	env, err := lambdaFunc.Store.GetEnv()
 	if err != nil {
 		return err
