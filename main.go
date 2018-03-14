@@ -68,7 +68,7 @@ func handler(req events.CloudWatchEvent) error {
 	discovery.Route53Zone = env["route53-zone"]
 	discovery.Route53ZoneID = env["route53-zone-id"]
 
-	return lambdaFunc.registerServices()
+	return discovery.registerServices()
 }
 
 func main() {

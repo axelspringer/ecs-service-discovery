@@ -18,22 +18,22 @@ type Discovery struct {
 	Route53ZoneID string
 }
 
-func (f *Discovery) registerServices() error {
+func (d *Discovery) registerServices() error {
 	var err error
 
 	batchChanges := make([]*r53.Change, 0)
 
 	serviceArns := make([]*string, 0)
-	serviceArns, err = f.listServiceArns(serviceArns, nil)
+	serviceArns, err = d.listServiceArns(serviceArns, nil)
 
 	services := make([]*ecs.Service, 0)
-	services, err = f.describeServices(serviceArns, services, 0)
+	services, err = d.describeServices(serviceArns, services, 0)
 	if err != nil {
 		return err
 	}
 
 	resourceRecords := make([]*r53.ResourceRecordSet, 0)
-	resourceRecords, err = f.listResourceRecords(resourceRecords, nil, nil)
+	resourceRecords, err = d.listResourceRecords(resourceRecords, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (f *Discovery) registerServices() error {
 		if aws.StringValue(resourceRecord.Type) == r53.RRTypeSrv {
 			shouldDelete := true
 			for _, service := range services {
-				dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), f.EcsCluster, f.Route53Zone}, ".")
+				dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), d.EcsCluster, d.Route53Zone}, ".")
 				if aws.StringValue(resourceRecord.Name) == dnsName {
 					shouldDelete = false
 				}
@@ -69,7 +69,7 @@ func (f *Discovery) registerServices() error {
 			ChangeBatch: &r53.ChangeBatch{
 				Changes: changes,
 			},
-			HostedZoneId: aws.String(f.Route53ZoneID),
+			HostedZoneId: aws.String(d.Route53ZoneID),
 		}
 
 		_, err = r53Svc.ChangeResourceRecordSets(params)
@@ -80,21 +80,21 @@ func (f *Discovery) registerServices() error {
 	}
 
 	for _, service := range services {
-		dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), f.EcsCluster, f.Route53Zone}, ".")
+		dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), d.EcsCluster, d.Route53Zone}, ".")
 
 		taskArns := make([]*string, 0)
-		taskArns, err = f.listTasksArns(service.ServiceName, taskArns, nil)
+		taskArns, err = d.listTasksArns(service.ServiceName, taskArns, nil)
 		if err != nil {
 			return err
 		}
 
 		tasks := make([]*ecs.Task, 0)
-		tasks, err = f.describeTasks(taskArns, tasks, 0)
+		tasks, err = d.describeTasks(taskArns, tasks, 0)
 		if err != nil {
 			return err
 		}
 
-		change, err := f.createSRVChangeRecord(dnsName, service.ServiceName, tasks)
+		change, err := d.createSRVChangeRecord(dnsName, service.ServiceName, tasks)
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (f *Discovery) registerServices() error {
 			Changes: batchChanges,
 			Comment: aws.String("ECS-Service-Discovery"),
 		},
-		HostedZoneId: aws.String(f.Route53ZoneID),
+		HostedZoneId: aws.String(d.Route53ZoneID),
 	}
 
 	_, err = r53Svc.ChangeResourceRecordSets(params)
@@ -115,7 +115,7 @@ func (f *Discovery) registerServices() error {
 	return err
 }
 
-func (f *Func) taskChange(task *ecs.Task) ([]*r53.ResourceRecord, error) {
+func (d *Discovery) taskChange(task *ecs.Task) ([]*r53.ResourceRecord, error) {
 	var err error
 
 	containerInstances, err := describeContainerInstances(task.ClusterArn, task.ContainerInstanceArn)
@@ -145,11 +145,11 @@ func (f *Func) taskChange(task *ecs.Task) ([]*r53.ResourceRecord, error) {
 	return changeRecords, nil
 }
 
-func (f *Func) createSRVChangeRecord(dnsName string, serviceName *string, tasks []*ecs.Task) (*r53.Change, error) {
+func (d *Discovery) createSRVChangeRecord(dnsName string, serviceName *string, tasks []*ecs.Task) (*r53.Change, error) {
 	resRecords := make([]*r53.ResourceRecord, 0)
 
 	for _, task := range tasks {
-		taskRecords, err := f.taskChange(task)
+		taskRecords, err := d.taskChange(task)
 		if err != nil {
 			return nil, err
 		}
@@ -172,10 +172,10 @@ func (f *Func) createSRVChangeRecord(dnsName string, serviceName *string, tasks 
 	}, nil
 }
 
-func (f *Func) describeTasks(taskArns []*string, tasks []*ecs.Task, n int) ([]*ecs.Task, error) {
+func (d *Discovery) describeTasks(taskArns []*string, tasks []*ecs.Task, n int) ([]*ecs.Task, error) {
 	pages := (len(tasks) / 100) - 1
 	params := &ecs.DescribeTasksInput{
-		Cluster: aws.String(f.EcsCluster),
+		Cluster: aws.String(d.EcsCluster),
 		Tasks:   taskArns[(n * 100):int(math.Min(float64(100), float64(len(taskArns)-(n*100))))],
 	}
 	taskDesc, err := ecsSvc.DescribeTasks(params)
@@ -187,16 +187,16 @@ func (f *Func) describeTasks(taskArns []*string, tasks []*ecs.Task, n int) ([]*e
 	n++
 
 	if n <= pages {
-		f.describeTasks(taskArns, tasks, n)
+		d.describeTasks(taskArns, tasks, n)
 	}
 
 	return tasks, nil
 }
 
-func (f *Func) listTasksArns(service *string, taskArns []*string, nextToken *string) ([]*string, error) {
+func (d *Discovery) listTasksArns(service *string, taskArns []*string, nextToken *string) ([]*string, error) {
 	var err error
 	params := &ecs.ListTasksInput{
-		Cluster:       aws.String(f.EcsCluster),
+		Cluster:       aws.String(d.EcsCluster),
 		DesiredStatus: aws.String(stateRunning),
 		ServiceName:   service,
 		NextToken:     nextToken,
@@ -209,16 +209,16 @@ func (f *Func) listTasksArns(service *string, taskArns []*string, nextToken *str
 	taskArns = append(taskArns, tasks.TaskArns...)
 
 	if tasks.NextToken != nil {
-		f.listTasksArns(service, taskArns, nextToken)
+		d.listTasksArns(service, taskArns, nextToken)
 	}
 
 	return taskArns, nil
 }
 
-func (f *Func) describeServices(serviceArns []*string, services []*ecs.Service, n int) ([]*ecs.Service, error) {
+func (d *Discovery) describeServices(serviceArns []*string, services []*ecs.Service, n int) ([]*ecs.Service, error) {
 	pages := (len(services) / 10) - 1
 	params := &ecs.DescribeServicesInput{
-		Cluster:  aws.String(f.EcsCluster),
+		Cluster:  aws.String(d.EcsCluster),
 		Services: serviceArns[(n * 10):int(math.Min(float64(10), float64(len(serviceArns)-(n*10))))],
 	}
 	serviceDesc, err := ecsSvc.DescribeServices(params)
@@ -230,16 +230,16 @@ func (f *Func) describeServices(serviceArns []*string, services []*ecs.Service, 
 	n++
 
 	if n <= pages {
-		f.describeServices(serviceArns, services, n)
+		d.describeServices(serviceArns, services, n)
 	}
 
 	return services, nil
 }
 
-func (f *Func) listResourceRecords(rRecords []*r53.ResourceRecordSet, startRecordName *string, startRecordType *string) ([]*r53.ResourceRecordSet, error) {
+func (d *Discovery) listResourceRecords(rRecords []*r53.ResourceRecordSet, startRecordName *string, startRecordType *string) ([]*r53.ResourceRecordSet, error) {
 	var err error
 	params := &r53.ListResourceRecordSetsInput{
-		HostedZoneId:    aws.String(f.Route53ZoneID),
+		HostedZoneId:    aws.String(d.Route53ZoneID),
 		StartRecordType: startRecordType,
 	}
 
@@ -259,16 +259,16 @@ func (f *Func) listResourceRecords(rRecords []*r53.ResourceRecordSet, startRecor
 	rRecords = append(rRecords, records.ResourceRecordSets...)
 
 	if *records.IsTruncated {
-		f.listResourceRecords(rRecords, records.NextRecordName, records.NextRecordType)
+		d.listResourceRecords(rRecords, records.NextRecordName, records.NextRecordType)
 	}
 
 	return rRecords, nil
 }
 
-func (f *Func) listServiceArns(serviceArns []*string, nextToken *string) ([]*string, error) {
+func (d *Discovery) listServiceArns(serviceArns []*string, nextToken *string) ([]*string, error) {
 	var err error
 	params := &ecs.ListServicesInput{
-		Cluster:   aws.String(f.EcsCluster),
+		Cluster:   aws.String(d.EcsCluster),
 		NextToken: nextToken,
 	}
 
@@ -279,7 +279,7 @@ func (f *Func) listServiceArns(serviceArns []*string, nextToken *string) ([]*str
 	serviceArns = append(serviceArns, services.ServiceArns...)
 
 	if services.NextToken != nil {
-		f.listServiceArns(serviceArns, nextToken)
+		d.listServiceArns(serviceArns, nextToken)
 	}
 
 	return serviceArns, nil

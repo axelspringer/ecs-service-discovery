@@ -20,7 +20,27 @@ Parameters:
     Description: VPC subnet ids.
 
 Resources:
-  EcsEciServiceDiscovery:
+  EcsServiceDiscoverySchedule: 
+    Type: "AWS::Events::Rule"
+    Properties: 
+      Description: "ScheduledRule"
+      ScheduleExpression: "rate(2 minutes)"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: !GetAtt EcsServiceDiscovery.Arn
+          Id: !Join ['-', [!Ref 'ProjectId', 'ecs-service-discovery']]
+
+  PermissionForEventsToInvokeLambda: 
+    Type: "AWS::Lambda::Permission"
+    Properties: 
+      FunctionName: 
+        Ref: "LambdaFunction"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt EcsServiceDiscoverySchedule.Arn
+
+  EcsServiceDiscovery:
     Type: AWS::Serverless::Function
     Properties:
       Handler: main
