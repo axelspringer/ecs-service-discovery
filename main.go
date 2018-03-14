@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	r53 "github.com/aws/aws-sdk-go/service/route53"
-	l "github.com/axelspringer/go-aws/lambda"
+	l "github.com/axelspringer/vodka-aws/lambda"
 )
 
 const (

@@ -31,6 +31,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/sdkio",
     "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
@@ -49,17 +50,20 @@
     "service/ssm/ssmiface",
     "service/sts"
   ]
-  revision = "bafcd9ccc717e9bc5406acaea370577299223873"
-  version = "v1.13.11"
+  revision = "4c9c8e98642a1a5e7c27d7a644cf9140809d49ee"
+  version = "v1.13.13"
 
 [[projects]]
   branch = "master"
   name = "github.com/axelspringer/go-aws"
-  packages = [
-    "lambda",
-    "store"
-  ]
-  revision = "e0222983f0398b8b2b85440deec4a4eb83a5f4f0"
+  packages = ["store"]
+  revision = "3eb73fcbdec546d308ebaf92e22385e2470f22dc"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/axelspringer/vodka-aws"
+  packages = ["lambda"]
+  revision = "3eb73fcbdec546d308ebaf92e22385e2470f22dc"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -75,6 +79,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5f7cc2d48288e27f709e7622a71ab919f6cbbe2d6851315c7551d000aedf42ad"
+  inputs-digest = "c89d6e145a6edbf73c5f8625f5c8d4d38c142b10329dd2daf3c7c86d39ada993"
   solver-name = "gps-cdcl"
   solver-version = 1
