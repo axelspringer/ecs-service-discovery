@@ -88,6 +88,10 @@ func (d *Discovery) registerServices() error {
 			return err
 		}
 
+		if len(taskArns) == 0 {
+			continue
+		}
+
 		tasks := make([]*ecs.Task, 0)
 		tasks, err = d.describeTasks(taskArns, tasks, 0)
 		if err != nil {
