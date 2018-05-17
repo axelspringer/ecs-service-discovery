@@ -45,7 +45,7 @@ func (d *Discovery) registerServices() error {
 			shouldDelete := true
 			for _, service := range services {
 				dnsName := strings.Join([]string{aws.StringValue(service.ServiceName), d.EcsCluster, d.Route53Zone}, ".")
-				if aws.StringValue(resourceRecord.Name) == dnsName {
+				if aws.StringValue(resourceRecord.Name) == dnsName || strings.Contains(aws.StringValue(resourceRecord.Name), d.EcsCluster) == false {
 					shouldDelete = false
 				}
 			}
